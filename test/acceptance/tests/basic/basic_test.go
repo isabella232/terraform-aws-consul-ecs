@@ -471,7 +471,7 @@ func TestBasic(t *testing.T) {
 			})
 
 			// Wait for both tasks to be registered in Consul.
-			retry.RunWith(&retry.Timer{Timeout: 6 * time.Minute, Wait: 20 * time.Second}, t, func(r *retry.R) {
+			retry.RunWith(&retry.Timer{Timeout: 15 * time.Minute, Wait: 60 * time.Second}, t, func(r *retry.R) {
 				out, err := helpers.ExecuteRemoteCommand(t, suite.Config(), consulServerTaskARN, "consul-server", `/bin/sh -c "consul catalog services"`)
 				r.Check(err)
 				if !strings.Contains(out, fmt.Sprintf("%s_%s", serverServiceName, randomSuffix)) ||
@@ -491,7 +491,7 @@ func TestBasic(t *testing.T) {
 			// `clientServiceName`  has a check synced from ECS.
 			services := []string{serverServiceName, clientServiceName}
 			for _, serviceName := range services {
-				retry.RunWith(&retry.Timer{Timeout: 2 * time.Minute, Wait: 20 * time.Second}, t, func(r *retry.R) {
+				retry.RunWith(&retry.Timer{Timeout: 15 * time.Minute, Wait: 60 * time.Second}, t, func(r *retry.R) {
 					out, err := helpers.ExecuteRemoteCommand(
 						t,
 						suite.Config(),
@@ -533,21 +533,21 @@ func TestBasic(t *testing.T) {
 			// Create an intention.
 			if secure {
 				// First check that connection between apps is unsuccessful.
-				retry.RunWith(&retry.Timer{Timeout: 3 * time.Minute, Wait: 20 * time.Second}, t, func(r *retry.R) {
+				retry.RunWith(&retry.Timer{Timeout: 15 * time.Minute, Wait: 60 * time.Second}, t, func(r *retry.R) {
 					curlOut, err := helpers.ExecuteRemoteCommand(t, suite.Config(), testClientTaskARN, "basic", `/bin/sh -c "curl localhost:1234"`)
 					r.Check(err)
 					if !strings.Contains(curlOut, `curl: (52) Empty reply from server`) {
 						r.Errorf("response was unexpected: %q", curlOut)
 					}
 				})
-				retry.RunWith(&retry.Timer{Timeout: 6 * time.Minute, Wait: 20 * time.Second}, t, func(r *retry.R) {
+				retry.RunWith(&retry.Timer{Timeout: 15 * time.Minute, Wait: 60 * time.Second}, t, func(r *retry.R) {
 					consulCmd := fmt.Sprintf(`/bin/sh -c "consul intention create %s_%s %s_%s"`, clientServiceName, randomSuffix, serverServiceName, randomSuffix)
 					_, err := helpers.ExecuteRemoteCommand(t, suite.Config(), consulServerTaskARN, "consul-server", consulCmd)
 					r.Check(err)
 				})
 			}
 
-			retry.RunWith(&retry.Timer{Timeout: 3 * time.Minute, Wait: 20 * time.Second}, t, func(r *retry.R) {
+			retry.RunWith(&retry.Timer{Timeout: 15 * time.Minute, Wait: 60 * time.Second}, t, func(r *retry.R) {
 				curlOut, err := helpers.ExecuteRemoteCommand(t, suite.Config(), testClientTaskARN, "basic", `/bin/sh -c "curl localhost:1234"`)
 				r.Check(err)
 				if !strings.Contains(curlOut, `"code": 200`) {
